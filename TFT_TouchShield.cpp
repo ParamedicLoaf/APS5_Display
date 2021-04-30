@@ -1,7 +1,7 @@
 // ******    Henrique  ****** 29/04/21
 //  Teste com botões Touch
 //
-// ************** Display TFT-  ILI9341  Versão V 1************** \\
+// ************** Display TFT-  ILI9341  Versão V 2************** \\
 
 
 #include "mbed.h"
