@@ -1,7 +1,7 @@
-// ******    Henrique  ****** 29/04/21
+// ******    Henrique  ****** 04/05/21
 //  Teste com botões Touch
 //
-// ************** Display TFT-  ILI9341  Versão V 2************** \\
+// ************** Display TFT-  ILI9341  Versão V 3************** \\
 
 
 #include "mbed.h"
@@ -9,6 +9,9 @@
 #include <MCUFRIEND_kbv.h>
 MCUFRIEND_kbv tft;
 #include "TouchScreen_kbv_mbed.h"
+DigitalOut led_1(PB_13);
+DigitalOut led_2(PB_14);
+DigitalOut led_3(PB_15);
 
 
 const int TS_LEFT=150,TS_RT=120,TS_TOP=920,TS_BOT=940;
@@ -64,56 +67,98 @@ void show_tft(void)
 
         if (tp.z < MINPRESSURE && tp.z > MAXPRESSURE)
 
-            tp.x = tft.width() - (map(tp.x, TS_RT, TS_LEFT, tft.width(), 0));
+        tp.x = tft.width() - (map(tp.x, TS_RT, TS_LEFT, tft.width(), 0));
         tp.y = tft.height() - (map(tp.y, TS_BOT, TS_TOP, tft.height(), 0));
 
 
 
-        if (tp.x>700&tp.x<800) {
+        if (tp.x==785) {
 
 
-            tft.setCursor(15, 200);
-            tft.printf("Button 1");
+
+            led_1= 1;
+            led_2 = 0;
+            led_3 = 0;
+
 
         }
 
-        if (tp.x>776&tp.x<845) {
+        if (tp.x== 822) {
 
 
-            tft.setCursor(15, 200);
-            tft.printf("Button 2");
+
+            led_2 =1;
+            led_1 =0;
+            led_3 = 0;
 
         }
 
-        tft.setCursor(0, (tft.height() * 3) / 4);
+        if (tp.x==875) {
 
-        tft.printf("tp.x=%d ", tp.x);
 
-    }
+
+            led_2 =0;
+            led_1 =0;
+            led_3 = 1;
+
+        }
+        
+        
+    if (tp.x==975) {
+            
+            led_2 =1;
+            led_1 =1;
+            led_3 =1;
+            
+            }
+            
+    if (tp.x==950) {
+            
+            led_2 =0;
+            led_1 =0;
+            led_3 =0;
+
+        }
+
+        tft.setCursor(0, (tft.height() * 0) / 4);
+
+        tft.printf(" ", 0 );
+
+       //tft.printf("tp.x=%d tp.y=%d   ", tp.x, tp.y);
+
+    
 }
 
+}
 
 
 void bot_1 ()
 {
+    
+    
+    tft.fillCircle(250,190,20,WHITE);
+    tft.fillCircle(250,130,20,CYAN);
 
 
     tft.setCursor(40, 50);
-    tft.drawRoundRect(5, 15, 200, 50, 5, WHITE);
-    tft.setTextColor(BLUE);
+    tft.drawRoundRect(5, 15, 165, 50, 5, WHITE);
+    tft.setTextColor(RED);
     tft.setTextSize(3);
     tft.setCursor(15, 30);
     tft.println("Button 1");
 
-
-
-
-    tft.drawRoundRect(5, 70, 200, 50, 5, WHITE);
+    tft.drawRoundRect(5, 70, 165, 50, 5, WHITE);
     tft.setTextColor(BLUE);
     tft.setTextSize(3);
     tft.setCursor(15,85);
     tft.println("Button 2");
 
+
+    tft.drawRoundRect(5, 125, 165, 50, 5, WHITE);
+    tft.setTextColor(YELLOW);
+    tft.setTextSize(3);
+    tft.setCursor(15,140);
+    tft.println("Button 3");
 
 
 }
