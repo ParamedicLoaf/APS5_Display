@@ -11,9 +11,6 @@ InterruptIn fdc2(PB_1);
 int tempo = 2;
 
 
-
-
-
 int gira_motor_sentido_horario(){
 
     if (fdc1 == 0){
