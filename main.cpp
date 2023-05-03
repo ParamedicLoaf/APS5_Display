@@ -10,6 +10,18 @@
 #include <MCUFRIEND_kbv.h>
 MCUFRIEND_kbv tft;
 #include "TouchScreen_kbv_mbed.h"
+#include "Motor.h"
+
+//******************************Configuração Motor*******************************//
+InterruptIn botao(PB_2);
+AnalogIn EixoYJoyStick(PC_3);
+
+bool REF = 0;
+int joy_y;
+int pos;
+
+Timer display;
+
 
 //******************************Configuração do Display***********************//
 const PinName XP = D8, YP = A3, XM = A2, YM = D9; 
@@ -18,9 +30,6 @@ DigitalInOut YPout(YP);
 DigitalInOut XMout(XM);
 TouchScreen_kbv ts = TouchScreen_kbv(XP, YP, XM, YM);
 TSPoint_kbv tp;
- // Valores para detectar a pressão do toque 
-#define MINPRESSURE 10
-#define MAXPRESSURE 1000
 
 long map(long x, long in_min, long in_max, long out_min, long out_max)
 {
@@ -28,7 +37,7 @@ long map(long x, long in_min, long in_max, long out_min, long out_max)
 }
 //***********************Orientação  Display**********************************//
 
-uint8_t Orientation = 0;
+uint8_t Orientation = 2;
 
 //****************************************************************************//
 
@@ -52,43 +61,69 @@ Serial pc(USBTX, USBRX);
 
 
 
-void disp()
-
+//***********************Escrita no  Display**********************************//
+void forma ()
 {
-    
-        tft.setTextSize(2);
-        tft.setTextColor(MAGENTA,BLACK);
-        
-    while (1) {
-        
-        tp = ts.getPoint();
-        YPout.output();
-        XMout.output(); 
-        
-        tft.setCursor(0, (tft.height() * 2) / 4);
-        tft.printf("tp.x=%d tp.y=%d   ", tp.x, tp.y);
 
-    }
-    
-
-
+    tft.fillScreen(BLACK);
+    tft.setCursor(0, 0); // Orientação X,Y
+    tft.print(pos);
+    tft.println(" passos");
+    tft.print(pos*3/200);
+    tft.print(" mm");
 }
+
+void estado_ref(){
+    referencia();
+    REF = 1;
+    pos = 0;
+    tft.fillScreen(BLACK);
+    display.start();
+    forma();
+}
+
+
+//****************************************************************************//
 
 
 
 void setup(void)
 {
-
+    
     tft.reset();
     tft.begin();
     tft.setRotation(Orientation);
-    tft.fillScreen(BLACK);
-    disp();
+    tft.fillScreen(BLACK);  // Fundo do Display
+    tft.setTextColor(CYAN);
+    tft.setTextSize(3);
+    
+    delay(1000);
+
+    botao.rise(&estado_ref);
+    tft.printf("\rPor favor aperte o botão para referenciar");
 }
 
-void loop()
-{
+void loop(){
 
+    while (REF == 1){
 
+        if (display.read_ms()>2000){
+            forma();
+            display.reset();
+        }
+
+        joy_y = EixoYJoyStick.read() * 1000;
+
+        if (joy_y>600){
+            //gira_motor_sentido_horario();
+            pos = pos + gira_motor_sentido_horario();
+
+        } else if (joy_y<400){
+            //gira_motor_sentido_antihorario();
+            pos = pos + gira_motor_sentido_antihorario();
+
+        } else {
+            stop();
+        }
+    } 
 }
-
