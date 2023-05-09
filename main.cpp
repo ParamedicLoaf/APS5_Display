@@ -15,12 +15,14 @@ MCUFRIEND_kbv tft;
 //******************************Configuração Motor*******************************//
 InterruptIn botao(PB_2);
 AnalogIn EixoYJoyStick(PC_3);
+InterruptIn emergencia(PB_11);
 
 bool REF = 0;
 int joy_y;
 int pos;
 
 Timer display;
+Timer debounce;
 
 
 //******************************Configuração do Display***********************//
@@ -62,8 +64,7 @@ Serial pc(USBTX, USBRX);
 
 
 //***********************Escrita no  Display**********************************//
-void forma ()
-{
+void forma (){
 
     tft.fillScreen(BLACK);
     tft.setCursor(0, 0); // Orientação X,Y
@@ -73,16 +74,43 @@ void forma ()
     tft.print(" mm");
 }
 
-void estado_ref(){
-    referencia();
-    REF = 1;
-    pos = 0;
+void referenciamento_tela(){
+
     tft.fillScreen(BLACK);
-    display.start();
-    forma();
+    tft.setCursor(0, 0); // Orientação X,Y
+    tft.printf("\rPor favor\naperte o\nbotao para\nreferenciar");
 }
 
+void emergencia_tela (){
 
+    tft.fillScreen(BLACK);
+    tft.setCursor(0, 0); // Orientação X,Y
+    tft.print("\rEMERGENCIA\n");
+    tft.println("Desative\no botão\nquando for\nseguro");
+}
+
+void estado_ref(){
+    if (debounce.read_ms() >10 && REF==0){
+        referencia();
+        REF = 1;
+        pos = 0;
+        tft.fillScreen(BLACK);
+        display.start();
+        forma();
+    }
+
+    debounce.reset();
+}
+
+void desastre(){
+    stop(); //para o motor
+    REF = 0; //
+    emergencia_tela();
+    while (emergencia == 0){ //enquanto etiver apertado
+
+    }
+    referenciamento_tela();
+}
 //****************************************************************************//
 
 
@@ -97,10 +125,14 @@ void setup(void)
     tft.setTextColor(CYAN);
     tft.setTextSize(3);
     
+    debounce.start();
+
     delay(1000);
 
     botao.rise(&estado_ref);
-    tft.printf("\rPor favor aperte o botão para referenciar");
+    emergencia.fall(&desastre);
+    referenciamento_tela();
+    
 }
 
 void loop(){
