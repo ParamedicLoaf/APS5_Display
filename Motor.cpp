@@ -7,6 +7,7 @@ DigitalOut direcao(PB_14);
 
 InterruptIn fdc1(PB_15);
 InterruptIn fdc2(PB_1);
+InterruptIn flag_emergencia(PB_11);
 
 int tempo = 2;
 
@@ -49,6 +50,10 @@ void referencia(){
 
     while(fdc2==0){
         gira_motor_sentido_antihorario();
+
+        if (flag_emergencia==0){
+            break;
+        }
     }
 
     stop();  
