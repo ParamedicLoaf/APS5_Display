@@ -20,6 +20,8 @@ bool REF = 0;
 int joy_y;
 int pos_y;
 
+int cursor=1;
+
 bool flag_emergencia = 1;
 
 Timer display;
@@ -67,21 +69,95 @@ void print_posicao(){
     tft.print(" mm");
 }
 
+void inicio_tela(){
+
+    if(cursor==1){
+    
+        tft.fillScreen(BLACK);
+        tft.setTextColor(CYAN);
+        tft.setCursor(10, 10);
+        tft.print("Referenciar");
+        tft.setCursor(10, 50);
+        if(REF==0){tft.setTextColor(RED);}
+        tft.print("Pegar posicao");
+        tft.setCursor(10, 90);
+        tft.print("Pipetar");
+
+        tft.drawRoundRect(5,5,250,30,1,WHITE);
+
+    } else if (cursor==2){
+
+        tft.fillScreen(BLACK);
+        tft.setTextColor(CYAN);
+        tft.setCursor(10, 10);
+        tft.print("Referenciar");
+        if(REF==0){tft.setTextColor(RED);}
+        tft.setCursor(10, 50);
+        tft.print("Pegar posicao");
+        tft.setCursor(10, 90);
+        tft.print("Pipetar");
+
+        tft.drawRoundRect(5,45,250,30,1,WHITE);
+
+    } else {
+
+        tft.fillScreen(BLACK);
+        tft.setTextColor(CYAN);
+        tft.setCursor(10, 10);
+        tft.print("Referenciar");
+        if(REF==0){tft.setTextColor(RED);}
+        tft.setCursor(10, 50);
+        tft.print("Pegar posicao");
+        tft.setCursor(10, 90);
+        tft.print("Pipetar");
+
+        tft.drawRoundRect(5,85,250,30,1,WHITE);
+    }   
+}
+
 void referenciamento_tela(){
 
     tft.fillScreen(BLACK);
-    tft.setCursor(0, 0); // Orientação X,Y
+    tft.setTextColor(CYAN);
+    tft.setCursor(10, 85); // Orientação X,Y
     tft.printf("\rPor favor\naperte confirma\npara referenciar");
 }
 
 void emergencia_tela(){
 
     tft.fillScreen(BLACK);
-    tft.setCursor(0, 0); // Orientação X,Y
+    tft.setCursor(80, 10); // Orientação X,Y
     tft.setTextColor(RED);
     tft.print("\rEMERGENCIA\n");
     tft.setTextColor(CYAN);
-    tft.println("Desative\no botao\nquando for\nseguro");
+    tft.println("\n\nDesative o botao\nquando for seguro");
+}
+
+void lista_pos_tela(){
+
+    tft.fillScreen(BLACK);
+    tft.setCursor(10, 10);
+    tft.setTextSize(2);
+    tft.println("Posicao pega");
+    tft.setCursor(10, 30);
+    tft.println("Posicao 1");
+    tft.setCursor(10, 50);
+    tft.println("Posicao 2");
+    tft.setCursor(10, 70);
+    tft.println("Posicao 3");
+    tft.setCursor(10, 90);
+    tft.println("Posicao 4");
+    tft.setCursor(10, 110);
+    tft.println("Posicao 5");
+    tft.setCursor(10, 130);
+    tft.println("Posicao 6");
+    tft.setCursor(10, 150);
+    tft.println("Posicao 7");
+    tft.setCursor(10, 170);
+    tft.println("Posicao 8");
+    tft.setCursor(10, 190);
+    tft.println("Posicao 9");
+    tft.setTextSize(3);
 }
 
 //****************************************************************************//
@@ -105,40 +181,81 @@ void setup(void)
 
     //interrupções
     emergencia.fall(&desastre);
-    referenciamento_tela();
+
+    
+    inicio_tela();
     
 }
 
 void loop(){
 
-    if (confirma==1){
-        estado_ref();
+    flag_emergencia = 1;
+
+    joy_y = EixoYJoyStick.read() * 1000;
+
+    if (joy_y<400){
+        cursor++;
+        if (cursor>3){
+            cursor = 1;
+        }
+        inicio_tela();
+
+        delay(300);
+
+    } else if (joy_y>600){
+        cursor--;
+        if(cursor<1){
+            cursor=3;
+        }
+
+        inicio_tela();
+        delay(300);
+
     }
 
-    //JOG
-    while (REF == 1){
+    if (confirma==1){
+        switch(cursor){
+            case 1:
+                referenciamento_tela();
+                wait(0.5);
+                while(1){
+                    if(confirma){
+                        estado_ref();
+                        break;
+                    }
+                }
+                break;
+            
+            case 2:
+                //JOG
+                while (REF == 1){
 
-        // a cada 2 segundos, printa a posição no display:
-        if (display.read_ms()>2000){ 
-            print_posicao();
-            display.reset();
+                    joy_y = EixoYJoyStick.read() * 1000;
+
+                    // a cada 2 segundos, printa a posição no display:
+                    if (display.read_ms()>2000){ 
+                        print_posicao();
+                        display.reset();
+                    }
+
+                    // gira o motor de acordo com a leitura do Joystick
+                    if (joy_y>600){
+                
+                        pos_y = pos_y + gira_y_mais();
+
+                    } else if (joy_y<400){
+
+                        pos_y = pos_y + gira_y_menos();
+
+                    } else {
+                        stop_y();
+                    }
+                } 
+            break;
         }
+    }
 
-        joy_y = EixoYJoyStick.read() * 1000;
-
-        // gira o motor de acordo com a leitura do Joystick
-        if (joy_y>600){
     
-            pos_y = pos_y + gira_y_mais();
-
-        } else if (joy_y<400){
-
-            pos_y = pos_y + gira_y_menos();
-
-        } else {
-            stop_y();
-        }
-    } 
 }
 
 
@@ -156,15 +273,16 @@ void desastre(){
 
         }
 
-        referenciamento_tela();
+        inicio_tela();
 
+        /*
         while (1){
             if(confirma == 1){
                 flag_emergencia = 1;
                 estado_ref();
                 break;
             }
-        }
+        }*/
         
         
     
@@ -173,10 +291,12 @@ void desastre(){
 void estado_ref(){
     if (debounce.read_ms() >30 && REF==0 && emergencia==1){
         referencia();
-        REF = 1;
+
+        if (fdc2_y_==1){REF = 1;}
+        
         pos_y = 0;
         display.start();
-        print_posicao();
+        inicio_tela();
     }
 
     debounce.reset();
