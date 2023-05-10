@@ -3,14 +3,12 @@
 #include "Motor.h"
 #include "mbed.h"
 
+
 //Motor y
 DigitalOut clk_y(PB_13);
 DigitalOut direcao_y(PB_14);
 InterruptIn fdc1_y(PB_15);
 InterruptIn fdc2_y(PB_1);
-
-//Emergência
-InterruptIn flag_emergencia(PB_11);
 
 //controlador de velocidade y
 int tempo_y = 2;
@@ -56,17 +54,18 @@ void stop_y(){
     clk_y = 0;
 }
 
+
 void referencia(){
 
-    while(fdc2_y==0){ //roda até bater no fim de curso 2
-        gira_y_menos();
+    //flag_emergencia = 1;
 
-        if (flag_emergencia==0){ //caso a emergência for pressionada, para o programa
-            break;
-        }
+    while(fdc2_y==0){ //roda até bater no fim de curso 2
+        
+        gira_y_menos();
+        
     }
 
-    stop_y(); 
+    stop_y();
     
 }
 

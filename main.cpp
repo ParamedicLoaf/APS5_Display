@@ -7,6 +7,7 @@
 MCUFRIEND_kbv tft;
 #include "TouchScreen_kbv_mbed.h"
 #include "Motor.h"
+#include "main.h"
 
 // Configuração Motor
 DigitalIn confirma(PB_2);
@@ -80,31 +81,6 @@ void emergencia_tela(){
     tft.println("Desative\no botão\nquando for\nseguro");
 }
 
-//***********************Funções gerais**********************************//
-
-void estado_ref(){
-    if (debounce.read_ms() >30 && REF==0 && emergencia==1){
-        referencia();
-        REF = 1;
-        pos_y = 0;
-        tft.fillScreen(BLACK);
-        display.start();
-        print_posicao();
-    }
-
-    debounce.reset();
-}
-
-void desastre(){
-    stop_y(); //para o motor
-    REF = 0; //
-    emergencia_tela();
-    while (emergencia == 0){ //enquanto etiver apertado
-
-    }
-
-    referenciamento_tela();
-}
 //****************************************************************************//
 
 
@@ -161,4 +137,36 @@ void loop(){
             stop_y();
         }
     } 
+}
+
+
+
+//***********************Funções gerais**********************************//
+
+void desastre(){
+    if(debounce.read_ms()>30){
+
+        stop_y(); //para o motor
+        REF = 0; //
+        emergencia_tela();
+        while (emergencia == 0){ //enquanto etiver apertado
+
+        }
+
+        referenciamento_tela();
+        
+        }
+    debounce.reset();
+}
+
+void estado_ref(){
+    if (debounce.read_ms() >30 && REF==0 && emergencia==1){
+        referencia();
+        REF = 1;
+        pos_y = 0;
+        display.start();
+        print_posicao();
+    }
+
+    debounce.reset();
 }
