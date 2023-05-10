@@ -9,15 +9,18 @@ MCUFRIEND_kbv tft;
 #include "Motor.h"
 #include "main.h"
 
-// Configuração Motor
+// Configuração Motor Y
 DigitalIn confirma(PB_2);
 AnalogIn EixoYJoyStick(PC_3);
 InterruptIn emergencia(PB_11);
+InterruptIn fdc2_y_(PB_1);
 
 // variaveis auxiliares
 bool REF = 0;
 int joy_y;
 int pos_y;
+
+bool flag_emergencia = 1;
 
 Timer display;
 Timer debounce;
@@ -68,7 +71,7 @@ void referenciamento_tela(){
 
     tft.fillScreen(BLACK);
     tft.setCursor(0, 0); // Orientação X,Y
-    tft.printf("\rPor favor\naperte o\nbotao para\nreferenciar");
+    tft.printf("\rPor favor\naperte confirma\npara referenciar");
 }
 
 void emergencia_tela(){
@@ -78,7 +81,7 @@ void emergencia_tela(){
     tft.setTextColor(RED);
     tft.print("\rEMERGENCIA\n");
     tft.setTextColor(CYAN);
-    tft.println("Desative\no botão\nquando for\nseguro");
+    tft.println("Desative\no botao\nquando for\nseguro");
 }
 
 //****************************************************************************//
@@ -101,7 +104,6 @@ void setup(void)
     debounce.start();
 
     //interrupções
-    //botao.rise(&estado_ref);
     emergencia.fall(&desastre);
     referenciamento_tela();
     
@@ -144,19 +146,28 @@ void loop(){
 //***********************Funções gerais**********************************//
 
 void desastre(){
-    if(debounce.read_ms()>30){
+    
 
         stop_y(); //para o motor
         REF = 0; //
+        flag_emergencia = 0;
         emergencia_tela();
         while (emergencia == 0){ //enquanto etiver apertado
 
         }
 
         referenciamento_tela();
-        
+
+        while (1){
+            if(confirma == 1){
+                flag_emergencia = 1;
+                estado_ref();
+                break;
+            }
         }
-    debounce.reset();
+        
+        
+    
 }
 
 void estado_ref(){
@@ -169,4 +180,20 @@ void estado_ref(){
     }
 
     debounce.reset();
+}
+
+void referencia(){
+
+
+    while(fdc2_y_==0 && flag_emergencia==1){ //roda até bater no fim de curso 2
+        
+        gira_y_menos();
+
+        if(emergencia==0){
+            break;
+        }
+
+    }
+    stop_y();
+    
 }

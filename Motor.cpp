@@ -55,17 +55,5 @@ void stop_y(){
 }
 
 
-void referencia(){
 
-    //flag_emergencia = 1;
-
-    while(fdc2_y==0){ //roda até bater no fim de curso 2
-        
-        gira_y_menos();
-        
-    }
-
-    stop_y();
-    
-}
 

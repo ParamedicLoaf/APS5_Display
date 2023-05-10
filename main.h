@@ -2,7 +2,7 @@
 #define MAIN_H
 #include "mbed.h"
 
-//void referencia();
+void referencia();
 void estado_ref();
 void desastre();
 

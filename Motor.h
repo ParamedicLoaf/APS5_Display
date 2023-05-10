@@ -6,7 +6,7 @@
 int gira_y_mais();
 int gira_y_menos();
 void stop_y();
-void referencia();
+//void referencia();
 
 
 #endif
