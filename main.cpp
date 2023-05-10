@@ -1,10 +1,6 @@
-// ************************** Henrique  **************************************//
-//  Programa Teste  - Capturando dados do Touch
-//
-// ************** Display TFT-  ILI9341 Toutch********************************\\
+//Display TFT-  ILI9341 Toutch
 
-
-//************************ Biblioteca*****************************************//
+//Biblioteca
 #include "mbed.h"
 #include "Arduino.h"
 #include <MCUFRIEND_kbv.h>
@@ -12,20 +8,21 @@ MCUFRIEND_kbv tft;
 #include "TouchScreen_kbv_mbed.h"
 #include "Motor.h"
 
-//******************************Configuração Motor*******************************//
-InterruptIn botao(PB_2);
+// Configuração Motor
+DigitalIn confirma(PB_2);
 AnalogIn EixoYJoyStick(PC_3);
 InterruptIn emergencia(PB_11);
 
+// variaveis auxiliares
 bool REF = 0;
 int joy_y;
-int pos;
+int pos_y;
 
 Timer display;
 Timer debounce;
 
 
-//******************************Configuração do Display***********************//
+// Configuração do Display
 const PinName XP = D8, YP = A3, XM = A2, YM = D9; 
 const int TS_LEFT=121,TS_RT=922,TS_TOP=82,TS_BOT=890;
 DigitalInOut YPout(YP);
@@ -37,15 +34,11 @@ long map(long x, long in_min, long in_max, long out_min, long out_max)
 {
     return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
-//***********************Orientação  Display**********************************//
 
-uint8_t Orientation = 2;
+// Orientação  Display
+uint8_t Orientation = 1;
 
-//****************************************************************************//
-
-
-
-//***********************Tabela de Cores**************************************//
+// Tabela de Cores
 
 #define BLACK   0x0000
 #define BLUE    0x001F
@@ -56,21 +49,17 @@ uint8_t Orientation = 2;
 #define YELLOW  0xFFE0
 #define WHITE   0xFFFF
 
-//****************************************************************************//
-
-
-Serial pc(USBTX, USBRX);
-
-
+// Serial
+//Serial pc(USBTX, USBRX);
 
 //***********************Escrita no  Display**********************************//
-void forma (){
+void print_posicao(){
 
     tft.fillScreen(BLACK);
     tft.setCursor(0, 0); // Orientação X,Y
-    tft.print(pos);
+    tft.print(pos_y);
     tft.println(" passos");
-    tft.print(pos*3/200);
+    tft.print(pos_y*3/200);
     tft.print(" mm");
 }
 
@@ -81,55 +70,62 @@ void referenciamento_tela(){
     tft.printf("\rPor favor\naperte o\nbotao para\nreferenciar");
 }
 
-void emergencia_tela (){
+void emergencia_tela(){
 
     tft.fillScreen(BLACK);
     tft.setCursor(0, 0); // Orientação X,Y
+    tft.setTextColor(RED);
     tft.print("\rEMERGENCIA\n");
+    tft.setTextColor(CYAN);
     tft.println("Desative\no botão\nquando for\nseguro");
 }
 
+//***********************Funções gerais**********************************//
+
 void estado_ref(){
-    if (debounce.read_ms() >10 && REF==0){
+    if (debounce.read_ms() >30 && REF==0 && emergencia==1){
         referencia();
         REF = 1;
-        pos = 0;
+        pos_y = 0;
         tft.fillScreen(BLACK);
         display.start();
-        forma();
+        print_posicao();
     }
 
     debounce.reset();
 }
 
 void desastre(){
-    stop(); //para o motor
+    stop_y(); //para o motor
     REF = 0; //
     emergencia_tela();
     while (emergencia == 0){ //enquanto etiver apertado
 
     }
+
     referenciamento_tela();
 }
 //****************************************************************************//
 
 
+// PROGRAMA PRINCIPAL ____________________________________________________________
 
 void setup(void)
 {
-    
+    //configs da tela
     tft.reset();
     tft.begin();
     tft.setRotation(Orientation);
     tft.fillScreen(BLACK);  // Fundo do Display
     tft.setTextColor(CYAN);
     tft.setTextSize(3);
-    
-    debounce.start();
-
     delay(1000);
 
-    botao.rise(&estado_ref);
+    //inicia o debouncing
+    debounce.start();
+
+    //interrupções
+    //botao.rise(&estado_ref);
     emergencia.fall(&desastre);
     referenciamento_tela();
     
@@ -137,25 +133,32 @@ void setup(void)
 
 void loop(){
 
+    if (confirma==1){
+        estado_ref();
+    }
+
+    //JOG
     while (REF == 1){
 
-        if (display.read_ms()>2000){
-            forma();
+        // a cada 2 segundos, printa a posição no display:
+        if (display.read_ms()>2000){ 
+            print_posicao();
             display.reset();
         }
 
         joy_y = EixoYJoyStick.read() * 1000;
 
+        // gira o motor de acordo com a leitura do Joystick
         if (joy_y>600){
-            //gira_motor_sentido_horario();
-            pos = pos + gira_motor_sentido_horario();
+    
+            pos_y = pos_y + gira_y_mais();
 
         } else if (joy_y<400){
-            //gira_motor_sentido_antihorario();
-            pos = pos + gira_motor_sentido_antihorario();
+
+            pos_y = pos_y + gira_y_menos();
 
         } else {
-            stop();
+            stop_y();
         }
     } 
 }

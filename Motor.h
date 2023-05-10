@@ -3,9 +3,9 @@
 #include "mbed.h"
 
 
-int gira_motor_sentido_horario();
-int gira_motor_sentido_antihorario();
-void stop();
+int gira_y_mais();
+int gira_y_menos();
+void stop_y();
 void referencia();
 
 
